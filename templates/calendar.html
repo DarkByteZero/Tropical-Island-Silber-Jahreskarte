@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalender 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .year-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .month {
+            margin: 10px;
+            width: 250px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .month-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .weekdays, .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+        .weekdays div {
+            font-weight: bold;
+            text-align: center;
+            padding: 5px 0;
+        }
+        .day {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin: 2px auto;
+            border: 1px solid #ddd;
+        }
+        .day.green {
+            background-color: #d4f7d4;
+        }
+        .day.red {
+            background-color: #f7d4d4;
+        }
+        .day.vacation {
+            border: 3px solid purple; /* Urlaubstage */
+        }
+        .counter {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #f9f9f9;
+            color: #333;
+            text-align: left;
+            border-radius: 6px;
+            padding: 5px;
+            border: 1px solid #ddd;
+
+            /* Positionierung */
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position über dem Element */
+            left: 50%;
+            margin-left: -100px;
+
+            /* Pfeil */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%; /* Am unteren Rand des Tooltip-Containers */
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #ddd transparent transparent transparent;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Kalender 2025</h1>
+    <div id="calendar-container" class="year-container"></div>
+    <div class="counter" id="red-day-counter"></div>
+    <div class="counter" id="adjusted-red-day-counter"></div>
+
+    <script>
+        const exclusionDates = {{ exclusion_dates | tojson }};
+        // Hier kann man seinen eigenen Urlaub eintragen, um zu sehen ob sich diese mit den roten Tagen überschneiden.
+        // An diesen Tagen kannn man ja eh nicht gehen.
+        const vacationRanges = [
+        ];
+
+        const container = document.getElementById("calendar-container");
+        const redCounterElement = document.getElementById("red-day-counter");
+        const adjustedRedCounterElement = document.getElementById("adjusted-red-day-counter");
+        const unavailableWeeksCounterElement = document.getElementById("unavailable-weeks-counter");
+
+        const months = [
+            "Januar", "Februar", "März", "April", "Mai", "Juni",
+            "Juli", "August", "September", "Oktober", "November", "Dezember"
+        ];
+        const weekdays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+        const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+
+        const isVacationDay = (date) => {
+            return vacationRanges.some(range => {
+                const start = new Date(range.start);
+                const end = new Date(range.end);
+                return date >= start && date <= end;
+            });
+        };
+
+        let redDayCount = 0;
+        let redDaysDuringVacation = 0;
+        const weekData = {};
+
+        const year = 2025;
+
+        for (let month = 0; month < 12; month++) {
+            const monthContainer = document.createElement("div");
+            monthContainer.classList.add("month");
+
+            const title = document.createElement("div");
+            title.classList.add("month-title");
+            title.textContent = months[month];
+            monthContainer.appendChild(title);
+
+            // Add weekdays
+            const weekdaysRow = document.createElement("div");
+            weekdaysRow.classList.add("weekdays");
+            weekdays.forEach(day => {
+                const dayElement = document.createElement("div");
+                dayElement.textContent = day;
+                weekdaysRow.appendChild(dayElement);
+            });
+            monthContainer.appendChild(weekdaysRow);
+
+            // Add calendar
+            const calendar = document.createElement("div");
+            calendar.classList.add("calendar");
+
+            const numDays = daysInMonth(month, year);
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const offset = firstDay === 0 ? 6 : firstDay - 1; // Adjust for Monday start
+
+            // Empty slots before the first day of the month
+            for (let i = 0; i < offset; i++) {
+                const emptyDay = document.createElement("div");
+                calendar.appendChild(emptyDay);
+            }
+
+            for (let day = 1; day <= numDays; day++) {
+                const currentDate = new Date(year, month, day);
+                const dateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+
+                const dayElement = document.createElement("div");
+                dayElement.classList.add("day");
+
+                // Tooltip erstellen
+                const tooltipContainer = document.createElement("div");
+                tooltipContainer.classList.add("tooltip");
+
+                // Berechnung der Kalenderwoche
+                const weekNumber = Math.ceil((currentDate.getDate() + offset) / 7);
+                if (!weekData[weekNumber]) {
+                    weekData[weekNumber] = [];
+                }
+
+                let isUnavailable = false;
+
+                // Überprüfen, ob der Tag rot (Ferien/Feiertage) oder Urlaubstag ist
+                const isVacation = isVacationDay(currentDate);
+                let reasons = [];
+
+                if (exclusionDates[dateString]) {
+                    isUnavailable = true;
+                    dayElement.classList.add("red");
+                    redDayCount++;
+                    if (isVacation) {
+                        redDaysDuringVacation++;
+                    }
+                    reasons = reasons.concat(exclusionDates[dateString]);
+                } else {
+                    dayElement.classList.add("green");
+                }
+
+                if (isVacation) {
+                    isUnavailable = true;
+                    dayElement.classList.add("vacation");
+                    reasons.push("Eigener Urlaub");
+                }
+
+                weekData[weekNumber].push(isUnavailable);
+
+                // Tooltip Text hinzufügen, falls Gründe vorhanden sind
+                if (reasons.length > 0) {
+                    const tooltipText = document.createElement("div");
+                    tooltipText.classList.add("tooltiptext");
+                    tooltipText.innerHTML = reasons.join("<br>");
+                    tooltipContainer.appendChild(tooltipText);
+                }
+
+                dayElement.textContent = day;
+
+                tooltipContainer.appendChild(dayElement);
+                calendar.appendChild(tooltipContainer);
+            }
+
+            monthContainer.appendChild(calendar);
+            container.appendChild(monthContainer);
+        }
+
+        // Zeige die Gesamtanzahl der roten Tage an
+        redCounterElement.textContent = `Gesamtanzahl der roten Tage (Ferien/Feiertage): ${redDayCount}`;
+        const adjustedRedDays = redDayCount - redDaysDuringVacation;
+        adjustedRedCounterElement.textContent = `Rote Tage ohne Überschneidung mit Urlaub: ${adjustedRedDays}`;
+    </script>
+</body>
+</html>
