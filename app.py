@@ -106,6 +106,12 @@ def fetch_data():
             else:
                 print(f"Fehler beim Abrufen der Feiertage für {subdivision_code} im Jahr {year}: {response.status_code}")
 
+        # when year is 2025 add a public holidy 08.05.2025 for berlin
+        # also add a public holiday 19.06.2025 for sachsen
+        if year == 2025:
+            dates["2025-05-08"] = ["Feiertag Berlin: 80. Jahrestag der Befreiung vom Nationalsozialismus"]
+            dates["2025-06-19"] = ["Feiertag Sachsen: Fronleichnam"]
+
     # Update cache
     cache["years"] = list(set(cache.get("years", []) + [2024, 2025]))
     cache["dates"] = dates
