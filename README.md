@@ -1,7 +1,13 @@
 # Tropical-Island-Silber-Jahreskarte
 Ein Tool welches anzeigt an welchen Tagen mit der Silber Jahreskarte das Tropical Island besucht werden kann.
 
+Hinweis: Am besten noch mal nachprüfen, ich kann nicht garantieren das es 100% korrekt ist!
 
 ## Beispielausgabe für 2025
+<img width="1610" alt="image" src="https://github.com/user-attachments/assets/306adb5f-8d7a-419c-9cda-541c17823c8e" />
 
-<img width="1594" alt="Bildschirmfoto 2024-11-16 um 15 15 16" src="https://github.com/user-attachments/assets/4f60fd5a-7134-4f3a-b706-c2dbe2760d74">
+## Beispielausgabe für 2026
+<img width="1610" alt="image" src="https://github.com/user-attachments/assets/22903856-4d7f-46a9-89d3-2bb1bfb2a8e8" />
+
+
+
