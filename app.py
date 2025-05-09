@@ -38,7 +38,7 @@ def fetch_data():
         cache = {"years": [], "dates": {}}
 
     # Years to fetch data for
-    for year in [2024, 2025]:
+    for year in [2025, 2026]:
         valid_from = f"{year}-01-01"
         valid_to = f"{year}-12-31"
 
@@ -111,6 +111,9 @@ def fetch_data():
         if year == 2025:
             dates["2025-05-08"] = ["Feiertag Berlin: 80. Jahrestag der Befreiung vom Nationalsozialismus"]
             dates["2025-06-19"] = ["Feiertag Sachsen: Fronleichnam"]
+
+        if year == 2026:
+            dates["2026-06-04"] = ["Feiertag Sachsen: Fronleichnam"]
 
     # Update cache
     cache["years"] = list(set(cache.get("years", []) + [2024, 2025]))
