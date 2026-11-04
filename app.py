@@ -22,6 +22,9 @@ SUBDIVISION_NAMES = {
 # Cache file path
 CACHE_FILE = "cached_holidays.json"
 
+# Jahr, für das der Kalender angezeigt wird (für ein neues Jahr nur hier ändern)
+YEAR = 2027
+
 def fetch_data():
     dates = {}
     # Check if cache file exists and is up-to-date
@@ -29,16 +32,16 @@ def fetch_data():
         with open(CACHE_FILE, 'r', encoding='utf-8') as f:
             cache = json.load(f)
         cache_years = cache.get("years", [])
-        # If cache contains the needed years, use it
-        if set(cache_years) >= {2024, 2025}:
+        # If cache contains the needed year, use it
+        if YEAR in cache_years:
             print("Verwende zwischengespeicherte Daten")
             dates = cache.get("dates", {})
             return dates
     else:
         cache = {"years": [], "dates": {}}
 
-    # Years to fetch data for
-    for year in [2025, 2026]:
+    # Years to fetch data for (die API liefert auch Ferien, die ins Jahr hineinragen, z.B. Weihnachtsferien ab Dezember)
+    for year in [YEAR]:
         valid_from = f"{year}-01-01"
         valid_to = f"{year}-12-31"
 
@@ -115,8 +118,12 @@ def fetch_data():
         if year == 2026:
             dates["2026-06-04"] = ["Feiertag Sachsen: Fronleichnam"]
 
-    # Update cache
-    cache["years"] = list(set(cache.get("years", []) + [2024, 2025]))
+        # Fronleichnam (Sachsen, regional) fehlt auch 2027 in der API
+        if year == 2027:
+            dates.setdefault("2027-05-27", []).append("Feiertag Sachsen: Fronleichnam")
+
+    # Update cache (dates enthält nur das abgerufene Jahr)
+    cache["years"] = [YEAR]
     cache["dates"] = dates
     with open(CACHE_FILE, 'w', encoding='utf-8') as f:
         json.dump(cache, f, ensure_ascii=False)
@@ -126,7 +133,7 @@ def fetch_data():
 @app.route("/")
 def index():
     exclusion_dates = fetch_data()
-    return render_template("calendar.html", exclusion_dates=exclusion_dates)
+    return render_template("calendar.html", exclusion_dates=exclusion_dates, year=YEAR)
 
 if __name__ == "__main__":
     app.run(debug=True)

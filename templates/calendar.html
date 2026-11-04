@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalender 2025</title>
+    <title>Kalender {{ year }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -105,7 +105,7 @@
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Kalender 2025</h1>
+    <h1 style="text-align: center;">Kalender {{ year }}</h1>
     <div id="calendar-container" class="year-container"></div>
     <div class="counter" id="red-day-counter"></div>
     <div class="counter" id="adjusted-red-day-counter"></div>
@@ -142,7 +142,7 @@
         let redDaysDuringVacation = 0;
         const weekData = {};
 
-        const year = 2025;
+        const year = {{ year }};
 
         for (let month = 0; month < 12; month++) {
             const monthContainer = document.createElement("div");
